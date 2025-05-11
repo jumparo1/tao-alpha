@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #333;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+@media (max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    th {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        margin: 0 0 1rem 0;
+    }
+
+    td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    td:before {
+        position: absolute;
+        top: 0;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    td:nth-of-type(1):before { content: "Rank"; }
+    td:nth-of-type(2):before { content: "Subnet"; }
+    td:nth-of-type(3):before { content: "Emissions/day"; }
+    td:nth-of-type(4):before { content: "Gamma Price (TAO)"; }
+    td:nth-of-type(5):before { content: "Gamma/Emissions"; }
+    td:nth-of-type(6):before { content: "Market Cap"; }
+    td:nth-of-type(7):before { content: "FDV"; }
+    td:nth-of-type(8):before { content: "Volume/MC %"; }
+    td:nth-of-type(9):before { content: "Alpha Liquidity"; }
+    td:nth-of-type(10):before { content: "Root Prop"; }
+    td:nth-of-type(11):before { content: "Sentiment"; }
+    td:nth-of-type(12):before { content: "Top 5 Holders %"; }
+    td:nth-of-type(13):before { content: "Top Holder 7d Flow"; }
+    td:nth-of-type(14):before { content: "Whale Net Flow 7d"; }
+    td:nth-of-type(15):before { content: "Top Validators"; }
+    td:nth-of-type(16):before { content: "Validator Stake 7d"; }
+    td:nth-of-type(17):before { content: "Validator Uptime"; }
+    td:nth-of-type(18):before { content: "Asymmetric Score"; }
+} 

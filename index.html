@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAO Subnets</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>TAO Subnets Evaluation</h1>
+    <div id="search-container">
+        <input type="text" id="subnetInput" placeholder="Enter Subnet Name or Rank">
+        <button onclick="filterSubnet()">Show Evaluation</button>
+    </div>
+    <div id="evaluation-summary"></div>
+    <table id="subnetTable">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Subnet</th>
+                <th>Emissions/day</th>
+                <th>Gamma Price (TAO)</th>
+                <th>Gamma/Emissions</th>
+                <th>Market Cap</th>
+                <th>FDV</th>
+                <th>Volume/MC %</th>
+                <th>Alpha Liquidity</th>
+                <th>Root Prop</th>
+                <th>Sentiment</th>
+                <th>Top 5 Holders %</th>
+                <th>Top Holder 7d Flow</th>
+                <th>Whale Net Flow 7d</th>
+                <th>Top Validators</th>
+                <th>Validator Stake 7d</th>
+                <th>Validator Uptime</th>
+                <th>Asymmetric Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dynamic rows will be injected here by app.js -->
+        </tbody>
+    </table>
+    <script src="app.js"></script>
+</body>
+</html>
