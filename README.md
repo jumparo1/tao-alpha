@@ -1,18 +1,27 @@
-# TAO Subnet Evaluation App
+# TAO Subnet Alpha Dashboard
 
-This application displays and evaluates TAO subnets in a dynamic table using live data from the TAO API.
+A real-time dashboard for monitoring and evaluating TAO subnets. This project provides a dynamic table interface to display subnet metrics and performance data from the TAO network.
 
 ## Features
-- Displays subnet data in a clean, responsive table.
-- Allows searching for subnets by name or rank.
-- Fetches live data from the TAO API.
+
+- Real-time subnet data display
+- Dynamic table with sorting and filtering
+- Live API integration with TAO.app
+- Local development server with proxy support
+- Responsive design
 
 ## Setup
-1. Clone the repository.
-2. Run `npm install` to install dependencies.
-3. Start the local server with `npm start`.
-4. Open `index.html` in your browser.
-5. Ensure the application fetches data from `http://localhost:3000/api`.
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file with your API key (see `.env.example`)
+4. Start the development server: `npm start`
+
+## Development
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Node.js with Express
+- API: TAO.app integration
 
 ## Troubleshooting
 - If the application fails to load data, check the following:
