@@ -1,86 +1,100 @@
 require('dotenv').config();
 
 const express = require('express');
-const fetch = require('node-fetch');
 const cors = require('cors');
+const path = require('path');
+const getMergedSubnets = require('./dev/data/mergedSubnets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enable CORS
 app.use(cors());
 
-app.get('/api/*', async (req, res) => {
-    const apiUrl = `https://tao.app${req.path.replace('/api', '')}`;
+// Serve static files from the project root
+app.use(express.static(__dirname));
+
+// Serve index.html for the root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Mock data for fallback
+const mockData = [{
+    rank: 1,
+    subnet_name: 'Chutes',
+    emissions_per_day: 972.76,
+    gamma_price: 0.271,
+    market_cap: 5000000,
+    fdv: 10000000,
+    volume_mc: 5,
+    alpha_liquidity: 100000,
+    root_prop: 50,
+    sentiment_score: 'Neutral',
+    top_holders_percent: 40,
+    top_holder_7d_flow: 1000,
+    whale_net_7d_flow: 500,
+    top_validators: 'Validator A',
+    validator_stake_7d: 10000,
+    validator_uptime: 99,
+    macro: { fear_greed_index: 55 }
+}, {
+    rank: 2,
+    subnet_name: 'Test Subnet',
+    emissions_per_day: 100,
+    gamma_price: 0.2,
+    market_cap: 3000000,
+    fdv: 8000000,
+    volume_mc: 3,
+    alpha_liquidity: 50000,
+    root_prop: 45,
+    sentiment_score: 'Positive',
+    top_holders_percent: 35,
+    top_holder_7d_flow: 800,
+    whale_net_7d_flow: 300,
+    top_validators: 'Validator B',
+    validator_stake_7d: 8000,
+    validator_uptime: 98,
+    macro: { fear_greed_index: 60 }
+}];
+
+// API route for subnets
+app.get('/api/subnets', async (req, res) => {
+    // Check if API key is configured
+    if (!process.env.TAO_API_KEY) {
+        console.warn('TAO_API_KEY not configured, using mock data');
+        return res.json(mockData);
+    }
+
     try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+        // Fetch and merge subnet data using the modular API
+        const data = await getMergedSubnets(process.env.TAO_API_KEY);
         res.json(data);
     } catch (error) {
-        console.error('Error fetching data:', error);
-        res.status(500).json({ error: 'Failed to fetch data from TAO API' });
-    }
-});
-
-app.get('/api/subnets', async (req, res) => {
-    const headers = {
-        'X-API-Key': process.env.TAO_API_KEY
-    };
-
-    try {
-        const [infoResponse, holdersResponse, valuationResponse, macroResponse] = await Promise.all([
-            fetch('https://api.tao.app/api/beta/analytics/subnets/info', { headers }),
-            fetch('https://api.tao.app/api/beta/analytics/subnets/holders', { headers }),
-            fetch('https://api.tao.app/api/beta/analytics/subnets/valuation', { headers }),
-            fetch('https://api.tao.app/api/beta/analytics/macro/fear_greed/current', { headers })
-        ]);
-
-        const responses = [infoResponse, holdersResponse, valuationResponse, macroResponse];
-        for (const response of responses) {
-            if (!response.ok) {
-                const errorBody = await response.text();
-                console.error('Error fetching data:', errorBody.substring(0, 200));
-                return res.status(response.status).json({ error: `Failed to fetch data from TAO API. Status: ${response.status}` });
-            }
-            if (!response.headers.get('content-type').includes('application/json')) {
-                console.error('Non-JSON response received');
-                return res.status(500).json({ error: 'Non-JSON response received from TAO API' });
-            }
+        console.error('Error fetching subnet data:', error);
+        // Log the specific error for debugging
+        if (error.response) {
+            console.error('API Response:', {
+                status: error.response.status,
+                statusText: error.response.statusText,
+                headers: error.response.headers
+            });
         }
-
-        const [infoData, holdersData, valuationData, macroData] = await Promise.all(responses.map(r => r.json()));
-
-        // Merge data into a single JSON object
-        const mergedData = infoData.map(info => {
-            const holders = holdersData.find(h => h.subnet_name === info.subnet_name);
-            const valuation = valuationData.find(v => v.subnet_name === info.subnet_name);
-            return {
-                ...info,
-                ...holders,
-                ...valuation,
-                macro: macroData // Include macro data
-            };
-        });
-
-        res.json(mergedData);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        res.status(500).json({ error: 'Failed to fetch data from TAO API' });
+        // Fallback to mock data on error
+        console.log('Falling back to mock data');
+        res.json(mockData);
     }
 });
 
-app.get('/api/subnets', (req, res) => {
-    res.json([{
-        rank: 1,
-        subnet: 'Chutes',
-        emissionsPerDay: 972.76,
-        gammaPrice: 0.271,
-        // other mock data fields
-    }]);
-});
-
-app.listen(PORT, (err) => {
-    if (err) {
-        return console.error(`Failed to start server: ${err.message}`);
+// Start the server
+app.listen(PORT, () => {
+    console.log(`✅ Server running at http://localhost:${PORT}`);
+    console.log(`📊 Open http://localhost:${PORT} in your browser to view the dashboard`);
+    
+    // Log API key status
+    if (!process.env.TAO_API_KEY) {
+        console.warn('⚠️  TAO_API_KEY not configured - using mock data');
+    } else {
+        console.log('🔑 TAO API key is configured');
     }
-    console.log(`Server is running on http://localhost:${PORT}`);
 }); 

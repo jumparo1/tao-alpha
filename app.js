@@ -1,29 +1,9 @@
-// Mock data for TAO subnets
-const subnets = [
-    {
-        rank: 1,
-        subnet: 'Subnet A',
-        emissionsPerDay: 1000,
-        gammaPrice: 0.5,
-        marketCap: 5000000,
-        fdv: 10000000,
-        volumeMC: 5,
-        alphaLiquidity: 100000,
-        rootProp: 50,
-        sentiment: 'Neutral',
-        top5Holders: 40,
-        topHolderFlow: 1000,
-        whaleNetFlow: 500,
-        topValidators: 'Validator A',
-        validatorStake: 10000,
-        validatorUptime: 99
-    },
-    // Add more subnet objects as needed
-];
+// Remove mock data array since we're using API data
+let subnets = []; // Will store the fetched data
 
 // Function to calculate Gamma/Emissions ratio
 function calculateGammaEmissions(subnet) {
-    return subnet.gammaPrice / subnet.emissionsPerDay;
+    return subnet.gamma_price / subnet.emissions_per_day;
 }
 
 // Function to assign Asymmetric Score based on weighted formulas
@@ -50,45 +30,47 @@ function renderTable(subnets) {
         const row = tbody.insertRow();
         row.insertCell().textContent = subnet.rank;
         row.insertCell().textContent = subnet.subnet_name;
-        row.insertCell().textContent = subnet.emissions_per_day;
-        row.insertCell().textContent = subnet.gamma_price;
-        row.insertCell().textContent = subnet.gammaEmissions.toFixed(4);
-        row.insertCell().textContent = subnet.market_cap;
-        row.insertCell().textContent = subnet.fdv;
-        row.insertCell().textContent = subnet.volume_mc;
-        row.insertCell().textContent = subnet.alpha_liquidity;
-        row.insertCell().textContent = subnet.root_prop;
-        row.insertCell().textContent = subnet.sentiment_score;
-        row.insertCell().textContent = subnet.top_holders_percent;
-        row.insertCell().textContent = subnet.top_holder_7d_flow;
-        row.insertCell().textContent = subnet.whale_net_7d_flow;
-        row.insertCell().textContent = subnet.top_validators;
-        row.insertCell().textContent = subnet.validator_stake_7d;
-        row.insertCell().textContent = subnet.validator_uptime;
-        row.insertCell().textContent = subnet.asymmetricScore.toFixed(2);
+        row.insertCell().textContent = subnet.emissions_per_day?.toFixed(2) || 'N/A';
+        row.insertCell().textContent = subnet.gamma_price?.toFixed(4) || 'N/A';
+        row.insertCell().textContent = subnet.gammaEmissions?.toFixed(4) || 'N/A';
+        row.insertCell().textContent = subnet.market_cap?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.fdv?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.volume_mc?.toFixed(2) || 'N/A';
+        row.insertCell().textContent = subnet.alpha_liquidity?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.root_prop?.toFixed(2) || 'N/A';
+        row.insertCell().textContent = subnet.sentiment_score || 'N/A';
+        row.insertCell().textContent = subnet.top_holders_percent?.toFixed(2) || 'N/A';
+        row.insertCell().textContent = subnet.top_holder_7d_flow?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.whale_net_7d_flow?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.top_validators || 'N/A';
+        row.insertCell().textContent = subnet.validator_stake_7d?.toLocaleString() || 'N/A';
+        row.insertCell().textContent = subnet.validator_uptime?.toFixed(2) || 'N/A';
+        row.insertCell().textContent = subnet.asymmetricScore?.toFixed(2) || 'N/A';
     });
 }
 
 // Initialize the table on page load
 document.addEventListener('DOMContentLoaded', () => {
-    const port = window.location.port || 3000;
-    fetch(`http://localhost:${port}/api/subnets`)
+    // Use the current window location for the API URL
+    const apiUrl = `${window.location.protocol}//${window.location.host}/api/subnets`;
+    fetch(apiUrl)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`Network response was not ok: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
             // Calculate additional metrics and render table
-            const subnets = data.map(item => {
+            subnets = data.map(item => {
                 const gammaEmissions = item.gamma_price / item.emissions_per_day;
-                const topHolderConcentration = item.top_holders_percent;
-                const asymmetricScore = calculateAsymmetricScore(item);
+                const asymmetricScore = calculateAsymmetricScore({
+                    ...item,
+                    gammaEmissions
+                });
                 return {
                     ...item,
                     gammaEmissions,
-                    topHolderConcentration,
                     asymmetricScore
                 };
             });
@@ -96,18 +78,29 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error fetching data:', error);
-            document.getElementById('evaluation-summary').textContent = '⚠ Failed to load data. Please check API access or CORS settings.';
+            document.getElementById('evaluation-summary').textContent = 
+                `⚠ Failed to load data: ${error.message}. Please check if the server is running.`;
+            document.getElementById('evaluation-summary').style.color = 'red';
         });
 });
 
 function filterSubnet() {
     const input = document.getElementById('subnetInput').value.trim();
     const summaryDiv = document.getElementById('evaluation-summary');
-    const subnet = subnets.find(s => s.subnet.toLowerCase() === input.toLowerCase() || s.rank.toString() === input);
+    const subnet = subnets.find(s => 
+        s.subnet_name?.toLowerCase() === input.toLowerCase() || 
+        s.rank?.toString() === input
+    );
+    
     if (subnet) {
-        const gammaEmissions = calculateGammaEmissions(subnet).toFixed(5);
-        const asymmetricScore = calculateAsymmetricScore(subnet).toFixed(2);
-        summaryDiv.textContent = `🚀 ${subnet.subnet} (Rank ${subnet.rank}) → Asymmetric Score: ${asymmetricScore}, Gamma/Emissions: ${gammaEmissions}, Sentiment: ${subnet.sentiment}, Top Holder Flow: ${subnet.topHolderFlow}`;
+        const gammaEmissions = subnet.gammaEmissions?.toFixed(5) || 'N/A';
+        const asymmetricScore = subnet.asymmetricScore?.toFixed(2) || 'N/A';
+        summaryDiv.textContent = 
+            `🚀 ${subnet.subnet_name} (Rank ${subnet.rank}) → ` +
+            `Asymmetric Score: ${asymmetricScore}, ` +
+            `Gamma/Emissions: ${gammaEmissions}, ` +
+            `Sentiment: ${subnet.sentiment_score}, ` +
+            `Top Holder Flow: ${subnet.top_holder_7d_flow?.toLocaleString() || 'N/A'}`;
         summaryDiv.style.color = 'green';
     } else {
         summaryDiv.textContent = 'No matching subnet found. Please try again.';
